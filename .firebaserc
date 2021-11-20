@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "highwaybuddy-2021": {
+      "hosting": {
+        "HighwayBuddy2021": [
+          "highwaybuddy-2021"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "highwaybuddy-2021"
+  }
+}

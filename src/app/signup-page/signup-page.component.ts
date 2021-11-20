@@ -1,0 +1,78 @@
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut} from 'firebase/auth';
+import { DbService } from '../db.service';
+import { getFirestore, collection, addDoc, setDoc, doc, Timestamp } from '@firebase/firestore/lite'
+import { merge } from 'rxjs';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-signup-page',
+  templateUrl: './signup-page.component.html',
+  styleUrls: ['./signup-page.component.css']
+})
+export class SignupPageComponent implements OnInit {
+  uid: string = "NA";
+  authForm = new FormGroup(
+    {
+      email: new FormControl(''),
+      password: new FormControl(''),
+    }
+  );
+
+  constructor(private db: DbService, private router: Router) { }
+
+  ngOnInit(): void {
+  }
+
+  registerUser(){
+    //console.log(this.authForm.value);
+     const auth = getAuth();
+     createUserWithEmailAndPassword(auth, this.authForm.value.email, this.authForm.value.password)
+     .then((userCredential) => {
+         console.log("User Created in Auth Module");
+         const user = userCredential.user;
+         this.uid = user.uid;
+         const firestoreDB = getFirestore(this.db.app);
+         const documentToWrite = doc(firestoreDB, 'users', this.uid);
+         const userData = {
+           name: '',
+           phone: '',
+           email: this.authForm.value.email,
+           profileImage: '',
+           address: '',
+           uid: this.uid,
+           creationTime: Timestamp.now()
+         }; 
+         setDoc(documentToWrite, userData);
+        localStorage.setItem("userData", JSON.stringify(userData));
+     })
+     .catch((error) =>{
+       console.log("Something Went Wrong");
+     });
+     this.router.navigate(['/login']);
+  }
+
+  signInUser(){
+    const auth = getAuth();
+
+  signOut(auth).then(() => {
+    console.log("Sign Out Successfully");
+  })
+  .catch((error) => {
+    console.log("Can't Sign Out");   
+  });
+  this.router.navigate(['/signup']);
+
+    signInWithEmailAndPassword(auth, this.authForm.value.email, this.authForm.value.password)
+    .then((userCredential) => {
+        console.log("User Signed in Auth Module");
+        const user = userCredential.user;
+        this.uid = user.uid;
+    })
+    .catch((error) =>{
+      console.log("Something Went Wrong");
+    });
+  }
+
+}
